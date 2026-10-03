@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Selamat Jalan — safest route for riders in Ipoh, Perak</title>
+<meta name="description" content="Selamat Jalan — design prototype: motorcycle safe-route app for Ipoh, Perak. JKR / MBI integration simulated." />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage__bg"></div>
+
+  <!-- ===================== PHONE ===================== -->
+  <div class="phone" id="phone">
+    <div class="phone__notch"></div>
+
+    <div class="statusbar">
+      <span id="clock">9:41</span>
+      <span class="statusbar__mid">Selamat Jalan</span>
+      <span class="statusbar__icons" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="15" height="15"><path d="M3 18h2v-4H3v4Zm4 0h2V9H7v9Zm4 0h2V6h-2v12Zm4 0h2V3h-2v15Z" fill="currentColor"/></svg>
+        <svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 20l-2.5-3h5L12 20Zm-4.2-6.2 1.7 1.7h5l1.7-1.7a7.5 7.5 0 0 0-8.4 0ZM4 10.6A11.4 11.4 0 0 1 20 10.6l-1.6 1.9a9 9 0 0 0-12.8 0L4 10.6Z" fill="currentColor"/></svg>
+        <span class="battery"><i></i></span>
+      </span>
+    </div>
+
+    <div class="viewport" id="viewport">
+
+      <!-- ============ 1. HOME / MAP ============ -->
+      <section class="screen is-active" id="s-map" data-screen="map">
+        <div class="map" id="map"></div>
+        <!-- kept outside #map on purpose: Leaflet's panes reach z-index 700 -->
+        <div class="map__status" id="map-status" hidden></div>
+
+        <div class="map-ui map-ui--top">
+          <button class="searchbar" id="btn-where" type="button">
+            <span class="searchbar__pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" fill="currentColor"/></svg>
+            </span>
+            <span class="searchbar__col">
+              <em class="searchbar__hint">Where to?</em>
+              <b class="searchbar__text" id="where-label">Search Ipoh, Perak</b>
+            </span>
+            <span class="searchbar__chev" aria-hidden="true">›</span>
+          </button>
+          <div class="chips" id="legend" role="group" aria-label="Filter hazards by type"></div>
+        </div>
+
+        <div class="map-side">
+          <button class="iconbtn" id="btn-recenter" type="button" aria-label="Centre map on Ipoh" title="Centre on Ipoh town">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 3h-1.1A8 8 0 0 0 13 4.1V3h-2v1.1A8 8 0 0 0 4.1 11H3v2h1.1A8 8 0 0 0 11 19.9V21h2v-1.1A8 8 0 0 0 19.9 13H21v-2Z" fill="currentColor"/></svg>
+          </button>
+          <button class="iconbtn is-on" id="btn-labels" type="button" aria-label="Toggle hazard labels" title="Hazard labels">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="m12 3 9 5-9 5-9-5 9-5Zm0 12.5-6.2-3.4-2.8 1.6 9 5 9-5-2.8-1.6L12 15.5Z" fill="currentColor"/></svg>
+          </button>
+        </div>
+
+        <div class="map-tag" id="map-tag">Ipoh · Perak</div>
+
+        <button class="fab" id="btn-report" type="button">
+          <span class="fab__plus" aria-hidden="true">!</span>
+          <span class="fab__label">Report<br />hazard</span>
+        </button>
+      </section>
+
+      <!-- ============ 4. MY REPORTS ============ -->
+      <section class="screen" id="s-reports" data-screen="reports">
+        <header class="page-head">
+          <div>
+            <h1>My reports</h1>
+            <p class="page-head__sub" id="reports-sub">0 sent · 0 fixed</p>
+          </div>
+          <button class="iconbtn iconbtn--soft" id="btn-report-2" type="button" aria-label="New report">＋</button>
+        </header>
+        <div class="scroll" id="reports-list"></div>
+      </section>
+
+      <!-- ============ 6. PROFILE ============ -->
+      <section class="screen" id="s-profile" data-screen="profile">
+        <div class="scroll">
+          <div class="profile-hero">
+            <div class="avatar" aria-hidden="true">AR</div>
+            <h1>Amir Rahman</h1>
+            <p>Kawasaki Versys 250 · Ipoh, Perak</p>
+            <span class="pill pill--green">Rider since 2019</span>
+          </div>
+          <div class="statgrid" id="profile-stats"></div>
+          <div class="card" id="profile-badge"></div>
+          <div class="card">
+            <h2 class="card__title">Settings</h2>
+            <label class="row row--switch">
+              <span class="row__ico" aria-hidden="true">🌧️</span>
+              <span class="row__col"><b>Wet-weather routing</b><em>Prefer dry roads by default</em></span>
+              <input type="checkbox" class="switch" id="set-rain" />
+            </label>
+            <label class="row row--switch">
+              <span class="row__ico" aria-hidden="true">🔔</span>
+              <span class="row__col"><b>Hazard alerts</b><em>Voice + banner while riding</em></span>
+              <input type="checkbox" class="switch" id="set-alerts" checked />
+            </label>
+            <label class="row row--switch">
+              <span class="row__ico" aria-hidden="true">🌙</span>
+              <span class="row__col"><b>Ride mode dark theme</b><em>High contrast for daylight gloves</em></span>
+              <input type="checkbox" class="switch" id="set-dark" checked />
+            </label>
+          </div>
+          <div class="card">
+            <h2 class="card__title">Authorities</h2>
+            <div class="auth">
+              <span class="auth__dot" style="background:#0B5BD3"></span>
+              <div><b>JKR Perak</b><em>Federal &amp; state roads</em></div>
+              <span class="auth__ok">Connected</span>
+            </div>
+            <div class="auth">
+              <span class="auth__dot" style="background:#1B7A45"></span>
+              <div><b>Majlis Bandaraya Ipoh (MBI)</b><em>Town &amp; council roads</em></div>
+              <span class="auth__ok">Connected</span>
+            </div>
+          </div>
+          <p class="proto-tag">Prototype — JKR / MBI integration simulated</p>
+        </div>
+      </section>
+
+      <!-- ============ OVERLAYS ============ -->
+      <section class="screen screen--overlay" id="s-report" data-screen="report" aria-hidden="true"></section>
+      <section class="screen screen--overlay screen--dark" id="s-ride" data-screen="ride" aria-hidden="true"></section>
+      <section class="screen screen--overlay" id="s-detail" data-screen="detail" aria-hidden="true"></section>
+
+    </div>
+
+    <!-- ============ BOTTOM TAB BAR ============ -->
+    <nav class="tabbar" id="tabbar" role="tablist">
+      <button class="tab is-active" data-tab="map" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" width="23" height="23"><path d="m9 2 6 2.6V19l-6-2.6V2Zm-2 .9v13.3l-4 1.7V4.6l4-1.7ZM17 4.6l4-1.7v13.3l-4 1.7V4.6Z" fill="currentColor"/></svg>
+        <span>Map</span>
+      </button>
+      <button class="tab" data-tab="reports" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="23" height="23"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM8 12h8v2H8v-2Zm0 4h6v2H8v-2Z" fill="currentColor"/></svg>
+        <span>Reports</span>
+        <i class="tab__badge" id="tab-badge" hidden>0</i>
+      </button>
+      <button class="tab" data-tab="profile" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="23" height="23"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z" fill="currentColor"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+    <!-- ============ SHEETS / TOAST ============ -->
+    <div class="backdrop" id="backdrop" hidden></div>
+    <div class="sheet" id="sheet-dest" hidden aria-hidden="true"></div>
+    <div class="sheet sheet--tall" id="sheet-route" hidden aria-hidden="true"></div>
+    <div class="toast" id="toast" hidden></div>
+  </div>
+
+  <p class="stage__note">
+    <b>Selamat Jalan</b> — mobile prototype (390 × 844). Mock data only ·
+    <span class="stage__warn">JKR / MBI integration simulated</span>
+  </p>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/map.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/report.js"></script>
+<script src="js/ride.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
+
+
